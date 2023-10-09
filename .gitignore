@@ -6,3 +6,4 @@ auth_data.py
 logs
 __pycache__/
 /pay.py
+/crew_database.db
