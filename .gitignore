@@ -1,0 +1,8 @@
+venv
+.idea
+auth_data.py
+/.idea/
+/test.py
+logs
+__pycache__/
+/pay.py
