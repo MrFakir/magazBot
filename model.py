@@ -15,7 +15,10 @@ users = db.Table('users', metadate_obj,
                  )
 pay = db.Table('pay', metadate_obj,
                db.Column('id', db.Integer, primary_key=True),
+               db.Column('flight_date', db.DATE),
                db.Column('flight_number', db.Integer),
+               db.Column('flight_cash', db.Integer),
+               db.Column('flight_card', db.Integer),
                db.Column('flight_pay', db.Float),
                db.Column('user_id', db.ForeignKey('users.id'), nullable=False)
                )
