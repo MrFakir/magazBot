@@ -14,9 +14,19 @@ router = Router()
 class RegistrationOrLoginStates(StatesGroup):
     input_phone_registration = State()
     input_id_registration = State()
+    input_phone_login = State()
     input_id_login = State()
 
 
+# переделка регистрации
+# получаем номер телефона, ищем его в моей базе, если его в базе нет, то тогда прошу ввести табельный
+# и только после этого иду стучаться для получения связки номер - табельны и регистрации нового пользователя
+# ИЛИ
+# анонимная регистрация на основании id юзера телеграмма, как делают все
+
+
+
+# старт
 @router.message(Command('start'))
 async def cmd_start(message: Message):
     print(message)
@@ -28,8 +38,9 @@ async def cmd_start(message: Message):
     )
 
 
+# регистрация
 @router.message(F.text.lower() == 'зарегистрироваться')
-async def answer_no(message: Message, state: FSMContext):
+async def send_phone_registration(message: Message, state: FSMContext):
     await message.answer(
         'Для регистрации в базе, нажмите на кнопку "Предоставить номер телефона"',
         reply_markup=send_phone_number()
@@ -37,19 +48,10 @@ async def answer_no(message: Message, state: FSMContext):
     await state.set_state(RegistrationOrLoginStates.input_phone_registration)
 
 
-@router.message(F.text.lower() == 'войти')
-async def answer_no(message: Message, state: FSMContext):
-    await message.answer(
-        'Пожалуйста введите свой табельный номер для логина',
-        reply_markup=ReplyKeyboardRemove()
-    )
-    await state.set_state(RegistrationOrLoginStates.input_id_login)
-
-
 @router.message(RegistrationOrLoginStates.input_phone_registration, F.contact)
-async def read_id(message: Message, state: FSMContext):
+async def send_id_registration(message: Message, state: FSMContext):
     if message.contact.user_id == message.from_user.id:
-        await state.update_data(user_phone=message.contact.phone_number)
+        await state.update_data(user_phone_registration=message.contact.phone_number)
     else:
         await message.answer(text='Хорошая попытка, но не получилось...')
 
@@ -61,13 +63,13 @@ async def read_id(message: Message, state: FSMContext):
 
 
 @router.message(RegistrationOrLoginStates.input_id_registration, F.text.lower())
-async def read_id(message: Message, state: FSMContext):
+async def read_id_registration(message: Message, state: FSMContext):
     result, text = validate_id(message.text.lower())
     user_data = await state.get_data()
     if result:
         await message.answer(
-            text=f'Спасибо, вы ввели табельный номер {message.text.lower()}, телефон {user_data["user_phone"]} '
-                 f'сейчас попробую найти вас в базе АК',
+            text=f'Спасибо, вы ввели табельный номер {message.text.lower()}, '
+                 f'телефон {user_data["user_phone_registration"]} сейчас попробую найти вас в базе АК',
             # Парсер бота с id будет позже Telethon
         )
 
@@ -75,8 +77,23 @@ async def read_id(message: Message, state: FSMContext):
         await message.answer(text=text)
 
 
-@router.message(RegistrationOrLoginStates.input_id_login, F.text.lower())
-async def read_id(message: Message, state: FSMContext):
+# логин
+@router.message(F.text.lower() == 'войти')
+async def send_phone_login(message: Message, state: FSMContext):
+    await message.answer(
+        'Пожалуйста предоставьте свой номер телефона для логина',
+        reply_markup=send_phone_number()
+    )
+    await state.set_state(RegistrationOrLoginStates.input_phone_login)
+
+
+@router.message(RegistrationOrLoginStates.input_id_login, F.contact)
+async def send_id_login(message: Message, state: FSMContext):
+    if message.contact.user_id == message.from_user.id:
+        await state.update_data(user_phone_login=message.contact.phone_number)
+    else:
+        await message.answer(text='Хорошая попытка, но не получилось...')
+
     await message.answer(
         text=f'Спасибо, вы ввели табельный номер {message.text.lower()} сейчас попробую залогиниться',
         # Парсер бота с id будет позже
