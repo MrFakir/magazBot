@@ -5,7 +5,7 @@ auth_data.py
 /test.py
 logs
 __pycache__/
-/pay.py
+/backend/pay.py
 /crew_database.db
-/token_telegram.py
+/secret/token_telegram.py
 
