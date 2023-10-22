@@ -1,8 +1,15 @@
 # import sqlite3
+import os
+from pathlib import Path
+
 import sqlalchemy as db
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 # engine = db.create_engine('sqlite:///crew_database.db', echo=True)
-engine = db.create_engine('sqlite:///crew_database.db')
+
+# print(os.path.join(BASE_DIR, 'backend', 'crew_database.db'))
+engine = db.create_engine(f"sqlite:///{os.path.join(BASE_DIR, 'backend', 'crew_database.db')}")
+# engine = db.create_engine('sqlite:///crew_database.db')
 connection = engine.connect()
 metadate_obj = db.MetaData()
 
@@ -12,6 +19,7 @@ users = db.Table('users', metadate_obj,
                  db.Column('last_name', db.String),
                  db.Column('patronymic', db.String),
                  db.Column('phone_number', db.Integer, unique=True),
+                 db.Column('telegram_user_id', db.Integer, default=0),
                  )
 pay = db.Table('pay', metadate_obj,
                db.Column('id', db.Integer, primary_key=True),
@@ -32,5 +40,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-

@@ -2,7 +2,7 @@ import asyncio
 import logging
 from aiogram import Dispatcher, Bot
 from secret.token_telegram import token
-from hendlers import registration_or_login
+from hendlers import registration_or_login_2
 
 
 async def main():
@@ -12,7 +12,7 @@ async def main():
     dp = Dispatcher()
 
     dp.include_routers(
-        registration_or_login.router
+        registration_or_login_2.router
     )
 
     await bot.delete_webhook(drop_pending_updates=True)
