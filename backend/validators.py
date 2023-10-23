@@ -19,7 +19,7 @@ def validate_flight(flight):
 def validate_id(user_id):
     try:
         user_id = int(user_id)
-        if user_id <= 99999999:
+        if user_id <= 999999:
             return user_id, ''
         else:
             return False, 'Табельный номер слишком длинный'

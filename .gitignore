@@ -8,7 +8,9 @@ __pycache__/
 /backend/pay.py
 /crew_database.db
 /secret/token_telegram.py
-
 /bot/magaz_bot_help.py
 /bot/magaz_bot_help_1.py
 /backend/crew_database.db
+/parser_id/anon.session
+/parser_id/79995682544.session
+/parser_id/79678664791.session

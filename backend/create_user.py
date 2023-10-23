@@ -55,6 +55,10 @@ from backend.model import users, engine
 
 def create_user(user_data, phone_number, telegram_user_id):
     user_data = user_data.replace(';', ' ').replace('+', '').split()
+    if user_data[1] != 'PU' or user_data[1] != 'BC' or user_data[1] != 'FA':
+        return False, "Так так так... кто тут у нас? Бот только для бортпроводников, чужим тут не место :) \n" \
+                      "А если это ошибка, админ уже о ней знает, поправит и напишет в телегу =)" \
+                      "Ну или проверьте табельный"
     # не очень элегантное решение, переделаю потом, наверное...
     user_id = int(user_data.pop(0))
     user_data.pop(0)
@@ -84,7 +88,8 @@ def create_user(user_data, phone_number, telegram_user_id):
             result = result.first()
         if result is not None and result[0] == user_id:
             return False, 'Ошибка регистрации, такого не должно было быть, но почему-то у меня в базе \n' \
-                   f'Табельный номер {result[0]} принадлежит номеру телефона +{result[1]}, если эта ошибка, ' \
+                   f'Табельный номер {result[0]} принадлежит номеру телефона +{result[1]}, ' \
+                          f'а вы действительно работник нашей АК. Если эта ошибка, ' \
                    f'проверь свой введенный табельный, или нажми кнопку "Помощь", админ уже получил' \
                    f' информацию об этой ошибке'
         stmt = select(users.c.id, users.c.phone_number).where(users.c.phone_number == user_phone_number)
