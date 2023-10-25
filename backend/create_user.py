@@ -55,8 +55,12 @@ from backend.model import users, engine
 
 def create_user(user_data, phone_number, telegram_user_id):
     user_data = user_data.replace(';', ' ').replace('+', '').split()
-    if user_data[1] != 'PU' or user_data[1] != 'BC' or user_data[1] != 'FA':
-        return False, "Так так так... кто тут у нас? Бот только для бортпроводников, чужим тут не место :) \n" \
+    print(user_data[1], '!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+    if user_data[1] == 'PU' or user_data[1] == 'BC' or user_data[1] == 'FA':
+        pass
+    else:
+        return False, "Так так так... кто тут у нас? Бот только для бортпроводников, чужим тут не место :) \n " \
                       "А если это ошибка, админ уже о ней знает, поправит и напишет в телегу =)" \
                       "Ну или проверьте табельный"
     # не очень элегантное решение, переделаю потом, наверное...

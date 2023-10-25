@@ -1,10 +1,11 @@
-# import sqlite3
 import os
-from pathlib import Path
-
+# from pathlib import Path
+from Config import BASE_DIR
 import sqlalchemy as db
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+# BASE_DIR = Path(__file__).resolve().parent.parent
+# print(BASE_DIR, 123)
+# print(BASE_DIR, 321)
 # engine = db.create_engine('sqlite:///crew_database.db', echo=True)
 
 # print(os.path.join(BASE_DIR, 'backend', 'crew_database.db'))

@@ -1,8 +1,10 @@
+import os
 import time
 import asyncio
 
 from telethon import TelegramClient, events
 from secret.token_telegram import api_id, api_hash, pars_bot_id, session_name
+from Config import BASE_DIR
 
 # запускаем очередь пользователей, когда один начинает работы,
 # остальных вешаем в ожидание и раздаем номера, у первого запускаем "старт", когда первый
@@ -29,12 +31,12 @@ async def my_event_handler(event):
         print('Бот готов к приему сообщений')
     if '7' in event.raw_text:
         print(event.raw_text, 'это будет вывод!!!')
-        with open('file_user_data.txt', 'w') as file:
-            file.write("event.raw_text")
+        with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'w') as file:
+            file.write(event.raw_text)
         await asyncio.sleep(5)
         await event.reply('Контакты')
-    if '7967' in event.raw_text:
-        a = int(event.raw_text)
+    # if '7967' in event.raw_text:
+    #     a = int(event.raw_text)
 
 
 def main():

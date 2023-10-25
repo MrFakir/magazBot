@@ -1,13 +1,19 @@
+import asyncio
+import os
+import time
+
 from aiogram import Router, F, html
 from aiogram.filters import Command
 from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
 
+from Config import BASE_DIR
 from bot.keyboards.for_registration import get_registration_kb, send_phone_number, next_button
 
 from backend.validators import validate_id
 from backend.create_user import login, create_user
+from parser_id.bot_for_pars_sender import send_user_id
 
 router = Router()
 
@@ -68,18 +74,28 @@ async def send_phone_for_login(message: Message, state: FSMContext):
 
 @router.message(RegistrationOrLoginStates.input_id_registration, F.text.lower())
 async def registration_user(message: Message, state: FSMContext):
-    global qweqwe
+    # global qweqwe
     result, text = validate_id(message.text)
     if result:
         # регистрация нового пользователя в базе, парсим данный из другого бота, получаем их на вход
+        await send_user_id(str(result))
+        await message.answer(text='Пожалуйста подождите, пока мы ищем вас в базе')
+        await asyncio.sleep(5)
+        try:
+            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'r', encoding='utf-8') as file:
+                user_data = file.read()
+            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'w') as file:
+                file.write("0")
+        except Exception as ex:
+            print(ex)
 
-        data = '1299 BC Милевский Георгий Игоревич +79995682544;+79678664791'
-        qweqwe += 1
-        print(qweqwe)
-        await message.answer(text=str(qweqwe))
+        user_data = '1299 BC Милевский Георгий Игоревич +79995682544;+79678664791'
+        # qweqwe += 1
+        # print(qweqwe)
+        # await message.answer(text=str(qweqwe))
         user_phone = await state.get_data()
         # print('Это принт!!!', phone_number)
-        result, text = create_user(user_data=data, phone_number=user_phone['user_phone_registration'],
+        result, text = create_user(user_data=user_data, phone_number=user_phone['user_phone_registration'],
                                    telegram_user_id=message.from_user.id)
         if result:
             await message.answer(text=text)
@@ -95,3 +111,11 @@ async def answer_yes(message: Message):
         'Заглушка',
         reply_markup=ReplyKeyboardRemove()
     )
+
+
+def main():
+    pass
+
+
+if __name__ == '__main__':
+    main()
