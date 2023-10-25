@@ -13,7 +13,7 @@ from bot.keyboards.for_registration import get_registration_kb, send_phone_numbe
 
 from backend.validators import validate_id
 from backend.create_user import login, create_user
-from parser_id.bot_for_pars_sender import send_user_id
+from parser_id.bot_for_pars_id import send_user_id
 
 router = Router()
 
@@ -74,22 +74,21 @@ async def send_phone_for_login(message: Message, state: FSMContext):
 
 @router.message(RegistrationOrLoginStates.input_id_registration, F.text.lower())
 async def registration_user(message: Message, state: FSMContext):
-    # global qweqwe
     result, text = validate_id(message.text)
     if result:
         # регистрация нового пользователя в базе, парсим данный из другого бота, получаем их на вход
         await send_user_id(str(result))
         await message.answer(text='Пожалуйста подождите, пока мы ищем вас в базе')
-        await asyncio.sleep(5)
+        await asyncio.sleep(15)
         try:
             with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'r', encoding='utf-8') as file:
                 user_data = file.read()
-            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'w') as file:
+            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'w', encoding='utf-8') as file:
                 file.write("0")
         except Exception as ex:
             print(ex)
 
-        user_data = '1299 BC Милевский Георгий Игоревич +79995682544;+79678664791'
+        # user_data = '1299 BC Милевский Георгий Игоревич +79995682544;+79678664791'
         # qweqwe += 1
         # print(qweqwe)
         # await message.answer(text=str(qweqwe))

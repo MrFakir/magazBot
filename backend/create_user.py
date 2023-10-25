@@ -55,7 +55,7 @@ from backend.model import users, engine
 
 def create_user(user_data, phone_number, telegram_user_id):
     user_data = user_data.replace(';', ' ').replace('+', '').split()
-    print(user_data[1], '!!!!!!!!!!!!!!!!!!!!!!!!!')
+    # print(user_data[1], '!!!!!!!!!!!!!!!!!!!!!!!!!')
 
     if user_data[1] == 'PU' or user_data[1] == 'BC' or user_data[1] == 'FA':
         pass
@@ -139,7 +139,7 @@ def login(phone_number):
 
 def main():
     pass
-    print(create_user(user_data='1297 BC Милевский Георгий Игоревич +79995682545;+79678664791',
+    print(create_user(user_data='1297 BC Милевский Георгий Игоревич +79995682545 +79678664791',
                       phone_number='79995682545', telegram_user_id=4734242))
     # print(login('+79995682544'))
 

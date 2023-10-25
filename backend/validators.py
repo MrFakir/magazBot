@@ -8,7 +8,7 @@ def validate_name(name, colum):
 def validate_flight(flight):
     try:
         flight = int(flight)
-        if flight <= 999999:
+        if 99 < flight <= 999999:
             return True, flight
         else:
             return False, 'Введите корректный номер рейса'
