@@ -1,18 +1,16 @@
 import asyncio
 import os
-import time
 
-from aiogram import Router, F, html
+from aiogram import Router, F
 from aiogram.filters import Command
-from aiogram.types import Message, ReplyKeyboardRemove
-from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import StatesGroup, State
+from aiogram.types import Message, ReplyKeyboardRemove
 
 from Config import BASE_DIR
-from bot.keyboards.for_registration import get_registration_kb, send_phone_number, next_button
-
-from backend.validators import validate_id
 from backend.create_user import login, create_user
+from backend.validators import validate_id, get_clean_user_data
+from bot.keyboards.for_registration import send_phone_number, next_button
 from parser_id.bot_for_pars_id import send_user_id
 
 router = Router()
@@ -72,27 +70,52 @@ async def send_phone_for_login(message: Message, state: FSMContext):
         await state.set_state(RegistrationOrLoginStates.input_id_registration)
 
 
+async def check_result_file(user_id, user_phone):
+    while True:
+        print("Внутри цикла проверки файла")
+        await asyncio.sleep(3)
+        try:
+            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'r', encoding='utf-8') as file:
+                user_data = file.read()
+                print(user_data)
+            if user_data == "0":
+                continue
+            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'w', encoding='utf-8') as file:
+                file.write("0")
+            if user_data == '404':
+                message = "Хм... Я не нашёл ничего в базе по этому табельному, попробуйте ввести другой"
+                return False, message
+            if '7' in user_data:
+                result, data = get_clean_user_data(user_id, user_phone)
+                return result, data
+        except Exception as ex:
+            print(ex)
+
+
 @router.message(RegistrationOrLoginStates.input_id_registration, F.text.lower())
 async def registration_user(message: Message, state: FSMContext):
+    user_phone = await state.get_data()
     result, text = validate_id(message.text)
     if result:
         # регистрация нового пользователя в базе, парсим данный из другого бота, получаем их на вход
         await send_user_id(str(result))
         await message.answer(text='Пожалуйста подождите, пока мы ищем вас в базе')
-        await asyncio.sleep(15)
-        try:
-            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'r', encoding='utf-8') as file:
-                user_data = file.read()
-            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'w', encoding='utf-8') as file:
-                file.write("0")
-        except Exception as ex:
-            print(ex)
+        result_check, text_check = await check_result_file(user_id=str(result),
+                                                           user_phone=user_phone['user_phone_registration'])
+        print("Далее после цикла проверки файла")
+        if not result_check:
+            await message.answer(text=text_check)
+            return
+        # await message.answer(text='Проверка файла завершена')
+        # await asyncio.sleep(15)
 
+        # заглушка чтото пошло не так, можно попросить по новой ввести тн или закрутить функцию в рекурсию, на пару
+        # раз, но я бы лучше попросил ввести по новой, так безопаснее
         # user_data = '1299 BC Милевский Георгий Игоревич +79995682544;+79678664791'
         # qweqwe += 1
         # print(qweqwe)
         # await message.answer(text=str(qweqwe))
-        user_phone = await state.get_data()
+
         # print('Это принт!!!', phone_number)
         result, text = create_user(user_data=user_data, phone_number=user_phone['user_phone_registration'],
                                    telegram_user_id=message.from_user.id)

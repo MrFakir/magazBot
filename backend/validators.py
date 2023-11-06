@@ -1,3 +1,8 @@
+import os
+
+from Config import BASE_DIR
+
+
 def validate_name(name, colum):
     if len(name) <= 30:
         return name, ''
@@ -19,7 +24,7 @@ def validate_flight(flight):
 def validate_id(user_id):
     try:
         user_id = int(user_id)
-        if user_id <= 999999:
+        if 999 < user_id <= 999999:
             return user_id, ''
         else:
             return False, 'Табельный номер слишком длинный'
@@ -36,6 +41,38 @@ def validate_money(money):
             return False, 'При всём уважении, проверьте цифру'
     except ValueError:
         return False, 'Введите цифры без копеек'
+
+
+def get_clean_user_data(user_id_for_check, phone_number):
+    with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+        for i in lines:
+            if f'{user_id_for_check} ' in i:
+                result = i
+                break
+    user_data = result.replace(';', " ").replace('+', '').split()
+
+    if user_data[1] == 'PU' or user_data[1] == 'BC' or user_data[1] == 'FA':
+        user_data.pop(1)
+    else:
+        return False, "Так так так... кто тут у нас? Бот только для бортпроводников, чужим тут не место :) \n " \
+                      "А если это ошибка, админ уже о ней знает, поправит и напишет в телегу =)" \
+                      "Ну или проверьте табельный"
+    # не очень элегантное решение, переделаю потом, наверное...
+    clean_user_data = {'user_id': int(user_data.pop(0)),
+                       'user_last_name': user_data.pop(0),
+                       'user_first_name': user_data.pop(0),
+                       'user_patronymic': user_data.pop(0),
+                       'user_phone_number': 0,
+                       }
+    for i in user_data:
+        print(i)
+        if i == str(phone_number):
+            clean_user_data['user_phone_number'] = int(i)
+            break
+    if clean_user_data['user_phone_number'] == 0:
+        return False, "Регистрация прервана, предоставленный номер телефона не соответствует введенному табельному"
+    return True, clean_user_data
 
 
 def main():
