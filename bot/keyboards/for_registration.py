@@ -22,6 +22,12 @@ def next_button() -> ReplyKeyboardMarkup:
     return kb.as_markup(resize_keyboard=True)
 
 
+def cry_button() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardBuilder()
+    kb.button(text="Печальбеда...")
+    return kb.as_markup(resize_keyboard=True)
+
+
 def main():
     pass
 
