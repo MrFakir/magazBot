@@ -15,9 +15,8 @@ from parser_id.bot_for_pars_id import send_user_id
 
 router = Router()
 
-qweqwe = 1
 
-
+# список состояний пользователей, лишние уберу позже
 class RegistrationOrLoginStates(StatesGroup):
     input_phone_registration = State()
     input_id_registration = State()
@@ -25,13 +24,6 @@ class RegistrationOrLoginStates(StatesGroup):
     input_id_login = State()
     send_phone = State()
     logged_in = State()
-
-
-# переделка регистрации
-# получаем номер телефона, ищем его в моей базе, если его в базе нет, то тогда прошу ввести табельный
-# и только после этого иду стучаться для получения связки номер - табельны и регистрации нового пользователя
-# ИЛИ
-# анонимная регистрация на основании id юзера телеграмма, как делают все
 
 
 # старт
@@ -46,10 +38,9 @@ async def cmd_start(message: Message, state: FSMContext):
     await state.set_state(RegistrationOrLoginStates.send_phone)
 
 
+# считываем номер телефона из чата
 @router.message(RegistrationOrLoginStates.send_phone, F.contact)
 async def send_phone_for_login(message: Message, state: FSMContext):
-    # result = False
-    # data = {}
     if message.contact.user_id == message.from_user.id:
         await message.answer(text='Телефон принят, ищу вас в базе пользователей...')
         result, data = login(message.contact.phone_number)
@@ -70,67 +61,67 @@ async def send_phone_for_login(message: Message, state: FSMContext):
         await state.set_state(RegistrationOrLoginStates.input_id_registration)
 
 
-async def check_result_file(user_id, user_phone):
+# проверка файла с результатами работа парсер-бота, ей тут не место, подумаю куда ёё деть,
+# а может вообще убирать буду
+async def check_result_file(user_id, user_phone, telegram_user_id):
     while True:
         print("Внутри цикла проверки файла")
         await asyncio.sleep(3)
         try:
-            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'r', encoding='utf-8') as file:
+            with open(os.path.join(BASE_DIR, 'data', str(telegram_user_id) + '.txt'), 'r', encoding='utf-8') as file:
                 user_data = file.read()
                 print(user_data)
-            if user_data == "0":
-                continue
-            with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'w', encoding='utf-8') as file:
-                file.write("0")
+            # if user_data == "0":
+            #     continue
+            # with open(os.path.join(BASE_DIR, 'data', str(telegram_user_id)+'.txt'), 'w', encoding='utf-8') as file:
+            #     file.write("0")
             if user_data == '404':
                 message = "Хм... Я не нашёл ничего в базе по этому табельному, попробуйте ввести другой"
                 return False, message
             if '7' in user_data:
-                result, data = get_clean_user_data(user_id, user_phone)
+                result, data = get_clean_user_data(user_id, user_phone, telegram_user_id=telegram_user_id)
                 return result, data
         except Exception as ex:
             print(ex)
+            return False, "При поиске в базе что-то пошло не так, админ уже знает об этом," \
+                          "Вы можете попробовать ещё раз прислать свой табельный, вдруг всё заработает :)"
 
 
+# регистрация
 @router.message(RegistrationOrLoginStates.input_id_registration, F.text.lower())
 async def registration_user(message: Message, state: FSMContext):
     user_phone = await state.get_data()
-    result, text = validate_id(message.text)
-    if result:
+    result_valid, valid_data = validate_id(message.text)
+    if result_valid:
         # регистрация нового пользователя в базе, парсим данный из другого бота, получаем их на вход
-        await send_user_id(str(result))
         await message.answer(text='Пожалуйста подождите, пока мы ищем вас в базе')
-        result_check, text_check = await check_result_file(user_id=str(result),
-                                                           user_phone=user_phone['user_phone_registration'])
+        await send_user_id(user_id=str(result_valid), telegram_user_id=message.from_user.id)
+        await message.answer(text='Что-то нашли, посмотрим...')
+        # проверка результата, на выходе получает чистые данные в виде словаря
+        result_check, check_data = await check_result_file(user_id=str(result_valid),
+                                                           user_phone=user_phone['user_phone_registration'],
+                                                           telegram_user_id=message.from_user.id)
         print("Далее после цикла проверки файла")
         if not result_check:
-            await message.answer(text=text_check)
+            await message.answer(text=check_data)
             return
-        # await message.answer(text='Проверка файла завершена')
-        # await asyncio.sleep(15)
 
-        # заглушка чтото пошло не так, можно попросить по новой ввести тн или закрутить функцию в рекурсию, на пару
-        # раз, но я бы лучше попросил ввести по новой, так безопаснее
-        # user_data = '1299 BC Милевский Георгий Игоревич +79995682544;+79678664791'
-        # qweqwe += 1
-        # print(qweqwe)
-        # await message.answer(text=str(qweqwe))
-
-        # print('Это принт!!!', phone_number)
-        result, text = create_user(user_data=user_data, phone_number=user_phone['user_phone_registration'],
-                                   telegram_user_id=message.from_user.id)
-        if result:
-            await message.answer(text=text)
-        else:
-            await message.answer(text=text)
+        if result_check:
+            # если все данные в порядке, регистрируем пользователя
+            result_registration, registration_data = create_user(user_data=check_data,
+                                                                 telegram_user_id=message.from_user.id)
+            if result_registration:
+                await message.answer(text=registration_data)
+            else:
+                await message.answer(text=registration_data)
     else:
-        await message.answer(text=text)
+        await message.answer(text=valid_data)
 
 
 @router.message(F.text.lower())
-async def answer_yes(message: Message):
+async def mess_stub(message: Message):
     await message.answer(
-        'Заглушка',
+        text='Заглушка',
         reply_markup=ReplyKeyboardRemove()
     )
 

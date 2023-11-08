@@ -16,5 +16,6 @@ __pycache__/
 /secret/
 /parser_id/sender.session
 /parser_id/file_user_data.txt
-/data/test.py
+/tests/test.py
 /data/file_user_data.txt
+/tests/test.py

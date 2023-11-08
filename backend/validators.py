@@ -43,9 +43,10 @@ def validate_money(money):
         return False, 'Введите цифры без копеек'
 
 
-def get_clean_user_data(user_id_for_check, phone_number):
-    with open(os.path.join(BASE_DIR, 'data', 'file_user_data.txt'), 'r', encoding='utf-8') as file:
+def get_clean_user_data(user_id_for_check, phone_number, telegram_user_id):
+    with open(os.path.join(BASE_DIR, 'data', str(telegram_user_id) + '.txt'), 'r', encoding='utf-8') as file:
         lines = file.readlines()
+        print(lines)
         for i in lines:
             if f'{user_id_for_check} ' in i:
                 result = i
