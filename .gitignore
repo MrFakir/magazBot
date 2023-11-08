@@ -15,8 +15,5 @@ __pycache__/
 /parser_id/79678664791.session
 /secret/
 /parser_id/sender.session
-/parser_id/file_user_data.txt
 /tests/test.py
-/data/file_user_data.txt
-/tests/test.py
-/data/file_user_data1.txt
+/data/
