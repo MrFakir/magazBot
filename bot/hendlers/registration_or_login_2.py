@@ -41,7 +41,7 @@ async def cmd_start(message: Message, state: FSMContext):
 
 
 @router.message(Command('help'))
-async def cmd_start(message: Message):
+async def cmd_help(message: Message):
     print(message)
     await message.answer(
         text="Ваша проблема и все данные с неё были отправлены админу. Если вы хотите что-то добавить, "
@@ -56,7 +56,14 @@ async def cmd_start(message: Message):
 async def send_phone_for_login(message: Message, state: FSMContext):
     if message.contact.user_id == message.from_user.id:
         await message.answer(text='Телефон принят, ищу вас в базе пользователей...')
-        result, data = login(message.contact.phone_number)
+        phone_number = message.contact.phone_number
+        # телега с компа и телефона даёт разные форматы номеров телефона, с компа с "+", а с телефона без "+"
+        if phone_number[0] == '+':
+            phone_number = int(phone_number[1:])
+        else:
+            phone_number = int(phone_number)
+
+        result, data = login(phone_number)
     else:
         await message.answer(text='Хорошая попытка, но не получилось...')
         return
@@ -67,7 +74,7 @@ async def send_phone_for_login(message: Message, state: FSMContext):
                              reply_markup=next_button())
         await state.set_state(RegistrationOrLoginStates.logged_in)
     else:
-        await state.update_data(user_phone_registration=message.contact.phone_number)
+        await state.update_data(user_phone_registration=str(phone_number))
         await message.answer(text="Хм... Ничего не могу найти, похоже вы новый пользователь \n"
                                   "Пожалуйста введите табельный номер",
                              reply_markup=ReplyKeyboardRemove())

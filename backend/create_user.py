@@ -46,11 +46,7 @@ def create_user(user_data: dict, telegram_user_id):
                               f"как только будет время"
 
 
-def login(phone_number):
-    if phone_number[0] == '+':
-        phone_number = int(phone_number[1:])
-    else:
-        phone_number = int(phone_number)
+def login(phone_number: int):
 
     stmt = select(users.c.id, users.c.first_name, users.c.patronymic, users.c.last_name, users.c.phone_number).where(
         users.c.phone_number == phone_number)

@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 
 from Config import BASE_DIR
 
@@ -66,14 +67,28 @@ def get_clean_user_data(user_id_for_check, phone_number, telegram_user_id):
                        'user_patronymic': user_data.pop(0),
                        'user_phone_number': 0,
                        }
+
     for i in user_data:
         print(i)
+        print('Тип сравниваемого значения', type(i))
+        print('Мой номер телефона, который я предоставил', phone_number)
         if i == str(phone_number):
             clean_user_data['user_phone_number'] = int(i)
             break
+    print(f'Вывод номера который был записан в клин-дата {clean_user_data["user_phone_number"]}')
     if clean_user_data['user_phone_number'] == 0:
         return False, "Регистрация прервана, предоставленный номер телефона не соответствует введенному табельному"
     return True, clean_user_data
+
+
+def validate_date(date: str):
+    try:
+        date = datetime.strptime(date, '%d.%m.%y').date()
+        print(type(date))
+        return date, ''
+    except Exception as ex:
+        print(ex)
+        return False, 'Введите дату в формате ДД.ММ.ГГ, например 20.10.23'
 
 
 def main():
