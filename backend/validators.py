@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 
@@ -11,13 +12,13 @@ def validate_name(name, colum):
         return False, f'Введите только {colum}'
 
 
-def validate_flight(flight):
+def validate_undefined_flight(flight):
     try:
         flight = int(flight)
         if 99 < flight <= 999999:
             return True, flight
         else:
-            return False, 'Введите корректный номер рейса'
+            return False, 'Введите корректный номер рейса, не бывает таких длинных номеров'
     except ValueError:
         return False, 'Введите номер рейса без U6'
 
@@ -85,10 +86,32 @@ def validate_date(date: str):
     try:
         date = datetime.strptime(date, '%d.%m.%y').date()
         print(type(date))
-        return date, ''
+        return True, date
     except Exception as ex:
         print(ex)
-        return False, 'Введите дату в формате ДД.ММ.ГГ, например 20.10.23'
+        return False, 'Введите дату UTC в формате ДД.ММ.ГГ, например 20.10.23'
+
+
+def validate_flight(flight_number):
+    try:
+        flight_number = int(flight_number)
+        # не самое красивое решение, потом как-нибудь лучше сделаю, просто пользователя не хочу просить вводить букву
+        # и рейсы некоторые начинаются с 6рки, а в обиходе у нас принято говорить только цифры, без "U6"
+        flight_number = f'U6{str(flight_number)}'
+        # print(type(flight_number))
+    except ValueError:
+        # print('Неправильный тип, введите число')
+        return False, "Введите номер рейса без U6, только цифры"
+
+    with open(os.path.join(BASE_DIR, 'data', 'clen_button_list.json'), 'r') as file:
+        clen_button_list = json.load(file)
+    for i in clen_button_list:
+        # print(type(i['number']))
+        if i['number'] == flight_number:
+            return True, i
+    else:
+        return False, "Хм... Я не нашёл такого рейса, проверьте номер рейса"
+        # логику новых рейсов сделаю за пределами валидатора
 
 
 def main():
