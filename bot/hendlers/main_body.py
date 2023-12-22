@@ -66,7 +66,7 @@ async def input_flight_date_check(message: Message, state: FSMContext):
     result_valid, valid_data = validate_date(message.text)
     if result_valid:
         # Опять преобразовываю дату к строке, т.к. данными хочу обмениться через файл, хз как лучше...
-        # некрасиво, потому что перед записью в базу, нужно будет опять превратить в date, т.к.
+        # Некрасиво, потому что перед записью в базу, нужно будет опять превратить в date, т.к.
         # считаю, что хранить в базе дату в формате date - лучшее решение
         user_data = {'flight_date': str(valid_data)}
         with open(os.path.join(BASE_DIR, 'data', f'user_flight_{str(message.from_user.id)}.json'), 'w') as file:
@@ -98,7 +98,7 @@ async def input_flight_number(message: Message, state: FSMContext):
         await message.answer(
             text="ок...",
         )
-        pass
+
     else:
         await message.answer(
             text=valid_data,
@@ -111,10 +111,11 @@ async def input_flight_number(message: Message, state: FSMContext):
         )
         with open(os.path.join(BASE_DIR, 'data', 'user_flight_number_error_log.json'), 'r') as file:
             flight_error_log = json.load(file)
-        try:
-            user_errors = flight_error_log[str(message.from_user.id)]
-        except KeyError:
+        # проверяем есть ли ключ в базе
+        if not str(message.from_user.id) in flight_error_log:
             flight_error_log[str(message.from_user.id)] = 1
+        # условие такое, если ошибок ввода совершено меньше пяти, то считает за опечатку, если больше
+        # значит возможно такого рейса нет в базе и на else проверяем его и записываем
         if flight_error_log[str(message.from_user.id)] < 5:
             flight_error_log[str(message.from_user.id)] += 1
             with open(os.path.join(BASE_DIR, 'data', 'user_flight_number_error_log.json'), 'w') as file:
@@ -130,7 +131,7 @@ async def input_flight_number(message: Message, state: FSMContext):
                          "обновлю базу",
                     reply_markup=ReplyKeyboardRemove()
                 )
-                #функция записи в лог ошибки
+                # функция записи в лог ошибки
                 flight_error_log[str(message.from_user.id)] = 0
             else:
                 await message.answer(text=valid_data)
